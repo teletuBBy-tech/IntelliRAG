@@ -8,4 +8,6 @@ __pycache__/
 *.ipynb
 notebook/
 agenticrag/
+1-langchain-document-components.svg
+
 
