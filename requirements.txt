@@ -1,0 +1,22 @@
+# Your existing dependencies
+langchain
+langchain-core
+langchain-community
+pypdf
+pymupdf
+sentence-transformers
+faiss-cpu
+chromadb
+langchain-groq
+python-dotenv
+typesense
+langchain_openai
+langgraph
+
+# Added for backend
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+torch==2.2.0
+numpy==1.26.2
+pandas==2.1.1  # if you read CSVs in data_loader

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RAG Chatbot — Smart UI</title>
+
+  <!-- Simple modern styling (no external deps) -->
+  <style>
+    :root{
+      --bg: #0f1724;
+      --card: #0b1220;
+      --muted: #9aa4b2;
+      --accent: #6ee7b7;
+      --primary: #7c3aed;
+      --user: #2563eb;
+      --bot: #0ea5a4;
+      --glass: rgba(255,255,255,0.03);
+      --radius: 12px;
+      --max-width: 900px;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #071020 0%, #0f1724 60%);
+      color: #e6eef6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      max-width: var(--max-width);
+      margin: 36px auto;
+      padding: 20px;
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+    }
+
+    /* Card */
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 6px 30px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    header.appbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .logo{
+      width:44px; height:44px;
+      border-radius:10px;
+      background:linear-gradient(135deg,var(--primary), #4f46e5);
+      display:flex;align-items:center;justify-content:center;font-weight:700;color:white;
+      box-shadow: 0 6px 18px rgba(124,58,237,0.18);
+      font-family: Inter, sans-serif;
+    }
+    h1{ font-size:18px; margin:0; }
+    p.subtitle{ margin:0; color:var(--muted); font-size:13px; }
+
+    /* Chat column */
+    .chatColumn{
+      display:flex; flex-direction:column; height:72vh;
+    }
+
+    #chat {
+      flex:1;
+      overflow:auto;
+      padding:16px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+
+    .msg {
+      display:inline-block;
+      padding:12px 14px;
+      border-radius:12px;
+      margin:8px 0;
+      max-width:78%;
+      line-height:1.4;
+      word-wrap:break-word;
+      box-shadow: 0 4px 10px rgba(2,6,23,0.35);
+    }
+    .msg.user{
+      background: linear-gradient(180deg, rgba(37,99,235,0.14), rgba(37,99,235,0.08));
+      color: #eaf2ff;
+      align-self:flex-end;
+      border-top-right-radius:6px;
+      border-top-left-radius:12px;
+      border-bottom-right-radius:6px;
+    }
+    .msg.bot{
+      background: linear-gradient(180deg, rgba(14,165,164,0.08), rgba(14,165,164,0.04));
+      color: #e9fffb;
+      align-self:flex-start;
+      border-top-left-radius:6px;
+      border-top-right-radius:12px;
+      border-bottom-left-radius:6px;
+    }
+    .meta { color: var(--muted); font-size:12px; margin-top:6px; }
+
+    /* Input area */
+    .composer{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    #question{
+      flex:1;
+      padding:12px 14px;
+      border-radius:10px;
+      background:var(--glass);
+      border: 1px solid rgba(255,255,255,0.02);
+      color:inherit;
+      outline:none;
+      font-size:15px;
+    }
+    #send{
+      background: linear-gradient(180deg,var(--accent), #34d399);
+      border: none;
+      color:#052017;
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+      box-shadow: 0 8px 18px rgba(16,185,129,0.12);
+    }
+    #send:active{ transform:translateY(1px); }
+
+    /* Sidebar */
+    .sidebar{ display:flex; flex-direction:column; gap:12px; height:72vh; }
+    .uploadBox{
+      padding:12px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+    .uploadBox input[type="file"]{
+      width:100%;
+      padding:8px 6px;
+      background:transparent;
+      color:var(--muted);
+    }
+    .btn {
+      display:inline-block;
+      background: linear-gradient(180deg,var(--primary), #6d28d9);
+      color:white; padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:600;
+    }
+    .small{ font-size:13px; color:var(--muted); margin-top:8px; }
+
+    /* footer small */
+    .footerNote{ color:var(--muted); font-size:12px; margin-top:8px; }
+
+    /* responsive */
+    @media (max-width:920px){
+      .wrap{ grid-template-columns: 1fr; padding:14px; gap:14px; }
+      .sidebar{ height:auto; }
+      .chatColumn{ height:60vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <header class="appbar">
+        <div class="brand">
+          <div class="logo">AI</div>
+          <div>
+            <h1>RAG Chatbot</h1>
+            <p class="subtitle">Smart PDF Q&A — context-aware</p>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="meta">Local dev • <strong>http://127.0.0.1:8000</strong></div>
+          <div class="footerNote">Auto FAISS rebuild on upload</div>
+        </div>
+      </header>
+
+      <div class="chatColumn">
+        <div id="chat" aria-live="polite"></div>
+
+        <div class="composer">
+          <input id="question" type="text" placeholder="Ask a question about your PDFs (press Enter to send)" autocomplete="off" />
+          <button id="send">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="card sidebar">
+      <div class="uploadBox">
+        <h3 style="margin:0 0 8px 0">Upload PDF</h3>
+        <input id="pdfFile" type="file" accept="application/pdf" />
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button id="uploadBtn" class="btn">Upload PDF</button>
+          <div style="flex:1">
+            <div id="uploadStatus" class="small">No upload yet</div>
+          </div>
+        </div>
+        <div class="small">Accepted: .pdf — index rebuild runs in background</div>
+      </div>
+
+      <div class="uploadBox" style="display:flex;flex-direction:column;gap:8px;">
+        <h4 style="margin:0">Tips</h4>
+        <div class="small">• Ask specific queries like "what are logarithmic properties" for best matches.</div>
+        <div class="small">• Use follow-ups — the bot remembers recent turns.</div>
+        <!-- <div class="small">• Want exact pages? Add source/page metadata (optional).</div> -->
+      </div>
+
+      <div style="margin-top:auto" class="small">Built with your RAG stack • Keep grove safe</div>
+    </aside>
+  </div>
+
+  <!-- keep logic identical: chatHistory and upload behavior retained -->
+  <script>
+    const chat = document.getElementById('chat');
+    const questionInput = document.getElementById('question');
+    const sendButton = document.getElementById('send');
+
+    const uploadBtn = document.getElementById("uploadBtn");
+    const pdfInput = document.getElementById("pdfFile");
+    const uploadStatus = document.getElementById("uploadStatus");
+
+    // Conversation history array (sent to backend)
+    const chatHistory = [];
+
+    function appendMessage(role, text, pushToHistory = true) {
+      const div = document.createElement('div');
+      div.className = 'msg ' + role;
+      div.textContent = text;
+      chat.appendChild(div);
+      // small meta line
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = role === 'user' ? 'You' : 'Bot';
+      div.appendChild(meta);
+
+      chat.scrollTop = chat.scrollHeight;
+
+      if (pushToHistory) {
+        const prefix = role === 'user' ? 'USER: ' : 'BOT: ';
+        chatHistory.push(prefix + text);
+      }
+    }
+
+    // Send Chat Message
+    sendButton.addEventListener('click', async () => {
+      const question = questionInput.value.trim();
+      if (!question) return;
+
+      appendMessage('user', question);          // adds to UI and chatHistory
+      questionInput.value = '';
+
+      appendMessage('bot', 'Typing...', false); // temporary bot message in UI (do NOT push to history)
+      const botMessageDiv = chat.lastChild;
+
+      try {
+        const res = await fetch('http://127.0.0.1:8000/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question,
+            history: chatHistory     // <-- send history exactly as before
+          })
+        });
+        const data = await res.json();
+        botMessageDiv.innerText = data.summary;
+        // append small source note if present
+        if (data.summary && data.summary.includes("Sources:")) {
+          // keep as-is; user will see sources included
+        }
+        // now push bot answer into history
+        chatHistory.push('BOT: ' + data.summary);
+      } catch (err) {
+        botMessageDiv.innerText = 'Error connecting to backend';
+      }
+    });
+
+    // Allow Enter key
+    questionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendButton.click();
+    });
+
+    // PDF Upload Logic (unchanged behavior)
+    uploadBtn.addEventListener("click", async () => {
+      const file = pdfInput.files[0];
+      if (!file) {
+        uploadStatus.textContent = "Please select a PDF file first.";
+        uploadStatus.style.color = "var(--accent)";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      uploadStatus.textContent = "Uploading...";
+      uploadStatus.style.color = "var(--muted)";
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/upload_pdf", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        uploadStatus.textContent = data.message || "Upload complete.";
+        uploadStatus.style.color = "var(--primary)";
+      } catch (err) {
+        uploadStatus.textContent = "Error uploading file.";
+        uploadStatus.style.color = "#ff6b6b";
+      }
+    });
+  </script>
+</body>
+</html>
